@@ -13,8 +13,8 @@ User = get_user_model()
 class PrayerRequestTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.pastor = User.objects.create_user(
-            username='pastor', email='pastor@example.com', password='pass12345', role=User.Role.PASTOR
+        self.admin = User.objects.create_user(
+            username='admin', email='admin@example.com', password='pass12345', role=User.Role.ADMIN
         )
         self.leader = User.objects.create_user(
             username='leader', email='leader@example.com', password='pass12345', role=User.Role.LEADER
@@ -49,13 +49,13 @@ class PrayerRequestTests(TestCase):
         self.assertIsNone(response.data['author'])
 
         request_id = response.data['id']
-        self.client.force_authenticate(self.pastor)
+        self.client.force_authenticate(self.admin)
         detail = self.client.get(f'/api/prayer/requests/{request_id}/')
         self.assertIsNone(detail.data['author'])
 
     def test_wall_only_shows_approved_public_requests(self):
         pending = self._create(self.youth)
-        self.client.force_authenticate(self.pastor)
+        self.client.force_authenticate(self.admin)
         self.client.post(f"/api/prayer/requests/{pending.data['id']}/moderate/", {'status': 'APPROVED'}, format='json')
 
         self.client.force_authenticate(self.other_youth)
@@ -83,7 +83,7 @@ class PrayerRequestTests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_escalate_notifies_pastors(self):
+    def test_escalate_notifies_admins(self):
         created = self._create(self.youth)
         self.client.force_authenticate(self.leader)
         response = self.client.post(
@@ -92,12 +92,12 @@ class PrayerRequestTests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(
-            Notification.objects.filter(person=self.pastor, notification_type='PRAYER_ESCALATED').exists()
+            Notification.objects.filter(person=self.admin, notification_type='PRAYER_ESCALATED').exists()
         )
 
     def test_pray_action_toggles_and_is_idempotent_per_person(self):
         created = self._create(self.youth)
-        self.client.force_authenticate(self.pastor)
+        self.client.force_authenticate(self.admin)
         self.client.post(f"/api/prayer/requests/{created.data['id']}/moderate/", {'status': 'APPROVED'}, format='json')
 
         self.client.force_authenticate(self.other_youth)

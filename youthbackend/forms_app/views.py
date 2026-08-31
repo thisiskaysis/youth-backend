@@ -2,7 +2,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from core.permissions import IsLeaderOrPastor
+from core.permissions import IsLeaderOrAdmin
 from .models import FormAssignment, FormDefinition
 from .serializers import (
     AssignFormInputSerializer,
@@ -14,11 +14,11 @@ from .services import FormError, assign_form, submit_form
 
 
 class FormDefinitionViewSet(viewsets.ModelViewSet):
-    """Managing form definitions is Leader/Pastor-only; there's no
+    """Managing form definitions is Leader/Admin-only; there's no
     per-team scoping in the docs for this, unlike volunteer positions."""
 
     serializer_class = FormDefinitionSerializer
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
     queryset = FormDefinition.objects.all()
 
     def perform_create(self, serializer):
@@ -37,7 +37,7 @@ class FormDefinitionViewSet(viewsets.ModelViewSet):
 
 
 class FormAssignmentViewSet(viewsets.ReadOnlyModelViewSet):
-    """Outstanding-consent visibility: Leaders/Pastors see every
+    """Outstanding-consent visibility: Leaders/Admins see every
     assignment; everyone else only ever sees their own."""
 
     serializer_class = FormAssignmentSerializer
@@ -45,7 +45,7 @@ class FormAssignmentViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         qs = FormAssignment.objects.select_related('form', 'submission')
-        if user.is_leader_or_pastor or user.is_superuser:
+        if user.is_leader_or_admin or user.is_superuser:
             return qs
         return qs.filter(person=user)
 

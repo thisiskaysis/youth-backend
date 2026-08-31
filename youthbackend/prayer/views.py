@@ -3,7 +3,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from core.permissions import IsLeaderOrPastor
+from core.permissions import IsLeaderOrAdmin
 from inbox.serializers import InboxMessageSerializer
 from .models import PrayerRequest, PrayerSupport
 from .serializers import PrayerModerationSerializer, PrayerRequestSerializer, PrayerRespondSerializer
@@ -16,7 +16,7 @@ class PrayerRequestViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ('moderate_action',):
-            return [IsLeaderOrPastor()]
+            return [IsLeaderOrAdmin()]
         return super().get_permissions()
 
     def get_queryset(self):
@@ -31,7 +31,7 @@ class PrayerRequestViewSet(viewsets.ModelViewSet):
         wall = models.Q(visibility=PrayerRequest.Visibility.PUBLIC, status=PrayerRequest.Status.APPROVED)
         own = models.Q(author=user)
 
-        if user.is_leader_or_pastor or user.is_superuser:
+        if user.is_leader_or_admin or user.is_superuser:
             # Moderation/leadership queue: leaders-only and pending/escalated
             # requests, plus the wall and their own.
             return qs.filter(
@@ -72,7 +72,7 @@ class PrayerRequestViewSet(viewsets.ModelViewSet):
         fresh_count = PrayerSupport.objects.filter(prayer_request=prayer_request).count()
         return Response({'prayed': now_supporting, 'prayed_count': fresh_count})
 
-    @action(detail=True, methods=['post'], url_path='respond', permission_classes=[IsLeaderOrPastor])
+    @action(detail=True, methods=['post'], url_path='respond', permission_classes=[IsLeaderOrAdmin])
     def respond_action(self, request, pk=None):
         prayer_request = self.get_object()
         serializer = PrayerRespondSerializer(data=request.data)

@@ -1,7 +1,7 @@
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
-from core.permissions import IsLeaderOrPastor
+from core.permissions import IsLeaderOrAdmin
 from .models import RideRequest
 from .serializers import RideRequestCreateSerializer, RideRequestSerializer, RideRequestUpdateSerializer
 from .services import create_ride_request, update_ride
@@ -12,7 +12,7 @@ class RideRequestViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ('update', 'partial_update'):
-            return [IsLeaderOrPastor()]
+            return [IsLeaderOrAdmin()]
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -25,7 +25,7 @@ class RideRequestViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         qs = RideRequest.objects.select_related('person', 'assigned_leader', 'event')
-        if user.is_leader_or_pastor or user.is_superuser:
+        if user.is_leader_or_admin or user.is_superuser:
             return qs
         return qs.filter(person=user)
 

@@ -15,8 +15,8 @@ User = get_user_model()
 class NavigationVisibilityAndOrderingTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.pastor = User.objects.create_user(
-            username='pastor', email='pastor@example.com', password='pass12345', role=User.Role.PASTOR
+        self.admin = User.objects.create_user(
+            username='admin', email='admin@example.com', password='pass12345', role=User.Role.ADMIN
         )
         self.leader = User.objects.create_user(
             username='leader', email='leader@example.com', password='pass12345', role=User.Role.LEADER
@@ -65,7 +65,7 @@ class NavigationVisibilityAndOrderingTests(TestCase):
         self.assertEqual(response.data[0]['label'], 'B')
         self.assertEqual(response.data[1]['label'], 'A')
 
-    def test_only_pastor_can_create_protected_item(self):
+    def test_only_admin_can_create_protected_item(self):
         self.client.force_authenticate(self.leader)
         response = self.client.post('/api/navigation/', {
             'label': 'Core', 'destination_type': 'INTERNAL_SCREEN', 'destination_value': 'home',
@@ -73,19 +73,19 @@ class NavigationVisibilityAndOrderingTests(TestCase):
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.client.force_authenticate(self.pastor)
+        self.client.force_authenticate(self.admin)
         response = self.client.post('/api/navigation/', {
             'label': 'Core', 'destination_type': 'INTERNAL_SCREEN', 'destination_value': 'home',
             'is_protected': True,
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_protected_item_cannot_be_deleted_even_by_pastor(self):
+    def test_protected_item_cannot_be_deleted_even_by_admin(self):
         item = NavigationItem.objects.create(
             label='Core', destination_type=NavigationItem.DestinationType.INTERNAL_SCREEN,
             destination_value='home', is_protected=True,
         )
-        self.client.force_authenticate(self.pastor)
+        self.client.force_authenticate(self.admin)
         response = self.client.delete(f'/api/navigation/{item.id}/')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(NavigationItem.objects.filter(pk=item.id).exists())

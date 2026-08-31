@@ -11,7 +11,7 @@ class AttendanceConsumer(AsyncJsonWebsocketConsumer):
         self.session_id = self.scope['url_route']['kwargs']['session_id']
         self.group_name = f'attendance_session_{self.session_id}'
 
-        if not user or not user.is_authenticated or not getattr(user, 'is_leader_or_pastor', False):
+        if not user or not user.is_authenticated or not getattr(user, 'is_leader_or_admin', False):
             await self.close(code=4403)
             return
 

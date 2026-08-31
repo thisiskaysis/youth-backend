@@ -20,7 +20,7 @@ class UserRegistrationSecurityTests(TestCase):
             'password': 'supersecret123',
             'first_name': 'Sneaky',
             'last_name': 'User',
-            'role': User.Role.PASTOR,
+            'role': User.Role.ADMIN,
             'status': User.Status.ACTIVE,
             'is_superuser': True,
         }, format='json')
@@ -48,7 +48,7 @@ class UserSelfUpdateSecurityTests(TestCase):
 
     def test_self_cannot_escalate_own_role(self):
         response = self.client.put(
-            f'/api/users/{self.youth.id}/', {'role': User.Role.PASTOR}, format='json'
+            f'/api/users/{self.youth.id}/', {'role': User.Role.ADMIN}, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.youth.refresh_from_db()

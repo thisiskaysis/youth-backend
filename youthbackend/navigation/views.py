@@ -5,31 +5,31 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
-from core.permissions import IsLeaderOrPastorOrReadOnly
+from core.permissions import IsLeaderOrAdminOrReadOnly
 from .models import NavigationItem
 from .serializers import NavigationItemSerializer
 from .services import publish
 
 
-def _is_pastor(user):
-    return user.role == user.Role.PASTOR or user.is_superuser
+def _is_admin(user):
+    return user.role == user.Role.ADMIN or user.is_superuser
 
 
 class NavigationItemViewSet(viewsets.ModelViewSet):
     serializer_class = NavigationItemSerializer
-    permission_classes = [IsLeaderOrPastorOrReadOnly]
+    permission_classes = [IsLeaderOrAdminOrReadOnly]
 
     def get_queryset(self):
         qs = NavigationItem.objects.all().prefetch_related('audience_groups')
         user = self.request.user
-        if user.is_authenticated and (user.is_leader_or_pastor or user.is_superuser):
+        if user.is_authenticated and (user.is_leader_or_admin or user.is_superuser):
             return qs
         visible_ids = [item.id for item in qs if item.is_visible_to(user)]
         return qs.filter(id__in=visible_ids)
 
     def perform_create(self, serializer):
-        if serializer.validated_data.get('is_protected') and not _is_pastor(self.request.user):
-            raise PermissionDenied('Only a Pastor can create a protected navigation item.')
+        if serializer.validated_data.get('is_protected') and not _is_admin(self.request.user):
+            raise PermissionDenied('Only an Admin can create a protected navigation item.')
         next_order = (NavigationItem.objects.aggregate(Max('sort_order'))['sort_order__max'] or 0) + 1
         serializer.save(created_by=self.request.user, sort_order=next_order)
 
@@ -39,8 +39,8 @@ class NavigationItemViewSet(viewsets.ModelViewSet):
             'is_protected' in serializer.validated_data
             and serializer.validated_data['is_protected'] != instance.is_protected
         )
-        if changing_protection and not _is_pastor(self.request.user):
-            raise PermissionDenied('Only a Pastor can change protection on a navigation item.')
+        if changing_protection and not _is_admin(self.request.user):
+            raise PermissionDenied('Only an Admin can change protection on a navigation item.')
         serializer.save()
 
     def perform_destroy(self, instance):

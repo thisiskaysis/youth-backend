@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from core.permissions import IsLeaderOrPastorOrReadOnly
+from core.permissions import IsLeaderOrAdminOrReadOnly
 from .models import ContentItem
 from .serializers import ContentItemSerializer
 from .services import publish
@@ -10,12 +10,12 @@ from .services import publish
 
 class ContentItemViewSet(viewsets.ModelViewSet):
     serializer_class = ContentItemSerializer
-    permission_classes = [IsLeaderOrPastorOrReadOnly]
+    permission_classes = [IsLeaderOrAdminOrReadOnly]
 
     def get_queryset(self):
         qs = ContentItem.objects.all().prefetch_related('audience_groups')
         user = self.request.user
-        if user.is_authenticated and (user.is_leader_or_pastor or user.is_superuser):
+        if user.is_authenticated and (user.is_leader_or_admin or user.is_superuser):
             return qs
         # Youth only ever see published content targeted at them - never
         # rely on the client to hide draft/unpublished/other-audience posts.

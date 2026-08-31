@@ -5,7 +5,7 @@ is only ever sent once per session, detected by checking for a prior
 Notification with the same type/session rather than a dedicated flag field.
 
 There's no per-session "attendance manager" assignment yet, so this
-notifies every Leader/Pastor rather than a scoped subset - see repo memory
+notifies every Leader/Admin rather than a scoped subset - see repo memory
 (architecture.md) for that simplification.
 """
 from django.contrib.auth import get_user_model
@@ -24,7 +24,7 @@ NOT_CLOSED_THRESHOLD_MINUTES = 45
 
 
 class Command(BaseCommand):
-    help = 'Remind Leaders/Pastors about attendance sessions still open with people on site.'
+    help = 'Remind Leaders/Admins about attendance sessions still open with people on site.'
 
     def handle(self, *args, **options):
         now = timezone.now()
@@ -57,7 +57,7 @@ class Command(BaseCommand):
             if already_sent:
                 continue
 
-            staff = User.objects.filter(role__in=[User.Role.LEADER, User.Role.PASTOR])
+            staff = User.objects.filter(role__in=[User.Role.LEADER, User.Role.ADMIN])
             for person in staff:
                 notify(
                     person, Category.LEADER_ATTENDANCE, notification_type,

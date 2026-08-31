@@ -38,7 +38,7 @@ def process_scheduled():
         except Exception as exc:
             failed += 1
             notify_many(
-                User.objects.filter(role__in=[User.Role.LEADER, User.Role.PASTOR]),
+                User.objects.filter(role__in=[User.Role.LEADER, User.Role.ADMIN]),
                 Category.LEADER_CMS, NotificationType.CONTENT_PUBLISH_FAILED,
                 title=f'Failed to publish: {item.title}',
                 body=str(exc)[:200],

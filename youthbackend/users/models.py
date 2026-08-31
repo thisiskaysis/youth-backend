@@ -15,7 +15,7 @@ class User(AbstractUser):
     class Role(models.TextChoices):
         YOUTH = 'YOUTH', 'Youth'
         LEADER = 'LEADER', 'Leader'
-        PASTOR = 'PASTOR', 'Pastor'
+        ADMIN = 'ADMIN', 'Admin'
 
     class Status(models.TextChoices):
         ACTIVE = 'ACTIVE', 'Active'
@@ -60,7 +60,7 @@ class User(AbstractUser):
         return self.username
 
     @property
-    def is_leader_or_pastor(self):
-        return self.role in (self.Role.LEADER, self.Role.PASTOR)
+    def is_leader_or_admin(self):
+        return self.role in (self.Role.LEADER, self.Role.ADMIN)
 
 

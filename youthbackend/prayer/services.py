@@ -19,7 +19,7 @@ class PrayerError(Exception):
 
 
 def staff_users():
-    return User.objects.filter(role__in=[User.Role.LEADER, User.Role.PASTOR])
+    return User.objects.filter(role__in=[User.Role.LEADER, User.Role.ADMIN])
 
 
 def create_request(*, author, body, category='', location='', visibility=PrayerRequest.Visibility.LEADERS_ONLY, is_anonymous=False):
@@ -51,7 +51,7 @@ def moderate(prayer_request, actor, new_status, note=''):
 
     if new_status == PrayerRequest.Status.ESCALATED:
         notify_many(
-            User.objects.filter(role=User.Role.PASTOR), Category.LEADER_PRAYER, NotificationType.PRAYER_ESCALATED,
+            User.objects.filter(role=User.Role.ADMIN), Category.LEADER_PRAYER, NotificationType.PRAYER_ESCALATED,
             title='Prayer request escalated',
             body='A prayer request has been escalated and needs pastoral attention.',
             deep_link_type='prayer_request', deep_link_id=prayer_request.id,

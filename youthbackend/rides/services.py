@@ -1,5 +1,5 @@
 """Ride request workflow. Not group-scoped like volunteers/prayer - any
-Leader/Pastor can triage transport requests, matching how this operates in
+Leader/Admin can triage transport requests, matching how this operates in
 practice (a small transport-coordinator pool, not per-group ownership)."""
 from django.contrib.auth import get_user_model
 
@@ -17,7 +17,7 @@ def create_ride_request(*, person, event=None, requested_date=None, direction, a
         direction=direction, area=area, notes=notes,
     )
     notify_many(
-        User.objects.filter(role__in=[User.Role.LEADER, User.Role.PASTOR]),
+        User.objects.filter(role__in=[User.Role.LEADER, User.Role.ADMIN]),
         Category.LEADER_RIDES, NotificationType.RIDE_REQUEST_NEW,
         title='New ride request',
         body=f'{person} requested transport.',

@@ -30,13 +30,13 @@ def get_or_create_roster(event, actor):
 
 
 def team_leaders(group):
-    """Every Leader who leads this specific group, plus all Pastors -
+    """Every Leader who leads this specific group, plus all Admins -
     the practical stand-in for a proper "attendance managers" assignment
     concept, which doesn't exist yet."""
     leader_ids = GroupMembership.objects.filter(
         group=group, membership_role=GroupMembership.MembershipRole.LEADER, is_active=True
     ).values_list('person_id', flat=True)
-    return User.objects.filter(id__in=leader_ids) | User.objects.filter(role=User.Role.PASTOR)
+    return User.objects.filter(id__in=leader_ids) | User.objects.filter(role=User.Role.ADMIN)
 
 
 def find_conflicts(person, call_start, call_end, exclude_assignment_id=None):

@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from attendance.serializers import AttendanceRecordSerializer
-from core.permissions import IsLeaderOrPastor
+from core.permissions import IsLeaderOrAdmin
 from decisions.serializers import DecisionSerializer, FollowUpSerializer
 from forms_app.serializers import FormAssignmentSerializer
 from rides.serializers import RideRequestSerializer
@@ -15,7 +15,7 @@ class DashboardView(APIView):
     """Core KPI cards in one payload - counts/breakdowns only. Each card
     has a matching drill-down endpoint below for the underlying records."""
 
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
 
     def get(self, request):
         filters = queries.get_filters(request)
@@ -32,7 +32,7 @@ class DashboardView(APIView):
 
 
 class AttendanceTrendView(APIView):
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
 
     def get(self, request):
         weeks = int(request.query_params.get('weeks', 8))
@@ -40,7 +40,7 @@ class AttendanceTrendView(APIView):
 
 
 class RosterSummaryView(APIView):
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
 
     def get(self, request):
         event_id = request.query_params.get('event')
@@ -50,7 +50,7 @@ class RosterSummaryView(APIView):
 
 
 class AttendanceDrilldownView(ListAPIView):
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
     serializer_class = AttendanceRecordSerializer
 
     def get_queryset(self):
@@ -58,7 +58,7 @@ class AttendanceDrilldownView(ListAPIView):
 
 
 class FirstTimeVisitorsView(ListAPIView):
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
     serializer_class = UserBasicSerializer
 
     def get_queryset(self):
@@ -70,7 +70,7 @@ class FirstTimeVisitorsView(ListAPIView):
 
 
 class UnassignedYouthView(ListAPIView):
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
     serializer_class = UserBasicSerializer
 
     def get_queryset(self):
@@ -78,7 +78,7 @@ class UnassignedYouthView(ListAPIView):
 
 
 class DecisionsDrilldownView(ListAPIView):
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
     serializer_class = DecisionSerializer
 
     def get_queryset(self):
@@ -86,7 +86,7 @@ class DecisionsDrilldownView(ListAPIView):
 
 
 class OutstandingFollowUpsView(ListAPIView):
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
     serializer_class = FollowUpSerializer
 
     def get_queryset(self):
@@ -94,7 +94,7 @@ class OutstandingFollowUpsView(ListAPIView):
 
 
 class OutstandingConsentView(ListAPIView):
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
     serializer_class = FormAssignmentSerializer
 
     def get_queryset(self):
@@ -102,7 +102,7 @@ class OutstandingConsentView(ListAPIView):
 
 
 class RidesDrilldownView(ListAPIView):
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
     serializer_class = RideRequestSerializer
 
     def get_queryset(self):

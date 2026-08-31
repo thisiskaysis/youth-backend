@@ -50,7 +50,7 @@ def assign_follow_up(decision, assignee, actor, due_at=None, notes=''):
 
 
 def update_follow_up_status(follow_up, actor, status, notes=None):
-    if follow_up.assignee_id != actor.id and not (actor.role == actor.Role.PASTOR or actor.is_superuser):
+    if follow_up.assignee_id != actor.id and not (actor.role == actor.Role.ADMIN or actor.is_superuser):
         raise FollowUpError('NOT_YOUR_FOLLOWUP', 'This follow-up is not assigned to you.')
 
     follow_up.status = status

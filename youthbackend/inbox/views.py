@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
-from core.permissions import IsLeaderOrPastor
+from core.permissions import IsLeaderOrAdmin
 from users.permissions import get_manageable_people_queryset
 from .models import InboxMessage
 from .serializers import InboxMessageSerializer, SendMessageInputSerializer
@@ -17,7 +17,7 @@ User = get_user_model()
 
 
 class InboxMessageViewSet(viewsets.ModelViewSet):
-    """Sending is Leader/Pastor-only and scoped to people they're
+    """Sending is Leader/Admin-only and scoped to people they're
     authorised to contact (same scope as people search/management).
     Reading is open to anyone for their own sent/received messages."""
 
@@ -26,7 +26,7 @@ class InboxMessageViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'create':
-            return [IsLeaderOrPastor()]
+            return [IsLeaderOrAdmin()]
         return super().get_permissions()
 
     def get_queryset(self):

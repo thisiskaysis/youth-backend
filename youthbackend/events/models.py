@@ -54,7 +54,7 @@ class Event(TimeStampedModel):
         """Draft/scheduled content is staff-only; published content
         respects audience targeting."""
         if self.status != self.Status.PUBLISHED:
-            return user.is_authenticated and (user.is_leader_or_pastor or user.is_superuser)
+            return user.is_authenticated and (user.is_leader_or_admin or user.is_superuser)
         if self.audience_everyone:
             return True
         if self.audience_school_years and user.school_year in self.audience_school_years:

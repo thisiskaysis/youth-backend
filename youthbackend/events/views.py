@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from core.permissions import IsLeaderOrPastorOrReadOnly
+from core.permissions import IsLeaderOrAdminOrReadOnly
 from notifications.catalog import Category, NotificationType
 from notifications.services import notify_many
 from .models import Event
@@ -12,12 +12,12 @@ from .serializers import EventSerializer
 
 class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
-    permission_classes = [IsLeaderOrPastorOrReadOnly]
+    permission_classes = [IsLeaderOrAdminOrReadOnly]
 
     def get_queryset(self):
         qs = Event.objects.all().prefetch_related('audience_groups')
         user = self.request.user
-        if user.is_authenticated and (user.is_leader_or_pastor or user.is_superuser):
+        if user.is_authenticated and (user.is_leader_or_admin or user.is_superuser):
             return qs
         # Youth only ever see published content targeted at them - never
         # rely on the client to hide draft/unpublished/other-audience events.

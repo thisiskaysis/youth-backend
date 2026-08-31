@@ -41,5 +41,5 @@ class ContentItem(TimeStampedModel, AudienceTargetMixin):
 
     def is_visible_to(self, user):
         if self.status != self.Status.PUBLISHED:
-            return user.is_authenticated and (user.is_leader_or_pastor or user.is_superuser)
+            return user.is_authenticated and (user.is_leader_or_admin or user.is_superuser)
         return self.is_in_audience(user)

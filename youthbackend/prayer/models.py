@@ -20,7 +20,7 @@ class PrayerRequest(TimeStampedModel):
     category = models.CharField(max_length=50, blank=True)
     location = models.CharField(max_length=150, blank=True)
     visibility = models.CharField(max_length=15, choices=Visibility.choices, default=Visibility.LEADERS_ONLY)
-    # Hides the author from every API response, including to Leaders/Pastors -
+    # Hides the author from every API response, including to Leaders/Admins -
     # the DB record still keeps the real author for safeguarding traceability.
     is_anonymous = models.BooleanField(default=False)
     status = models.CharField(max_length=15, choices=Status.choices, default=Status.PENDING)

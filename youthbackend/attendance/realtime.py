@@ -3,7 +3,7 @@ from channels.layers import get_channel_layer
 
 
 def broadcast_session_update(session_id, event_type='attendance.updated'):
-    """Notify connected leader/pastor dashboards that a session's
+    """Notify connected leader/admin dashboards that a session's
     authoritative state changed. This is a broadcast of a REST-committed
     fact, never the write path itself."""
     channel_layer = get_channel_layer()

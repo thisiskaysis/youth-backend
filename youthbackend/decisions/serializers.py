@@ -43,7 +43,7 @@ class DecisionCreateSerializer(serializers.ModelSerializer):
 class AssignFollowUpInputSerializer(serializers.Serializer):
     # Follow-up is staff accountability, not peer/youth assignment.
     assignee_id = serializers.PrimaryKeyRelatedField(
-        source='assignee', queryset=User.objects.filter(role__in=[User.Role.LEADER, User.Role.PASTOR])
+        source='assignee', queryset=User.objects.filter(role__in=[User.Role.LEADER, User.Role.ADMIN])
     )
     due_at = serializers.DateTimeField(required=False, allow_null=True)
     notes = serializers.CharField(required=False, allow_blank=True, default='')

@@ -17,7 +17,7 @@ class Category(models.TextChoices):
     PRAYER = 'PRAYER', 'Prayer'
     GROUPS = 'GROUPS', 'Groups'
     PROFILE = 'PROFILE', 'Profile'
-    # Leader/pastor-facing
+    # Leader/admin-facing
     LEADER_ATTENDANCE = 'LEADER_ATTENDANCE', 'Leadership > Attendance'
     LEADER_ROSTER = 'LEADER_ROSTER', 'Leadership > Roster'
     LEADER_RIDES = 'LEADER_RIDES', 'Leadership > Rides'

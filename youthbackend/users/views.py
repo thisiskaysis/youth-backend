@@ -9,11 +9,11 @@ from django.contrib.auth import get_user_model
 
 from core.audit import log_audit
 from core.pagination import StandardResultsSetPagination
-from core.permissions import IsLeaderOrPastor
+from core.permissions import IsLeaderOrAdmin
 from .serializers import (
     MeSerializer,
     UserBasicSerializer,
-    UserPastorUpdateSerializer,
+    UserAdminUpdateSerializer,
     UserRegistrationSerializer,
     UserSelfUpdateSerializer,
     UserSerializer,
@@ -32,11 +32,11 @@ class UserList(APIView):
         # Sign-up is public; listing people requires staff scope.
         if self.request.method == 'POST':
             return [AllowAny()]
-        return [IsLeaderOrPastor()]
+        return [IsLeaderOrAdmin()]
 
     def get(self, request):
         """
-        Get the people the requesting Leader/Pastor is authorised to see.
+        Get the people the requesting Leader/Admin is authorised to see.
         """
         users = get_manageable_people_queryset(request.user).order_by('first_name', 'last_name')
         serializer = UserBasicSerializer(users, many=True)
@@ -66,11 +66,11 @@ class UserList(APIView):
 
 class PeopleSearch(APIView):
     """
-    Scoped people search for Leaders/Pastors, e.g. for manual attendance
+    Scoped people search for Leaders/Admins, e.g. for manual attendance
     check-in or group management. Never returns people outside the
     requester's authorised scope.
     """
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
 
     def get(self, request):
         queryset = get_manageable_people_queryset(request.user)
@@ -104,7 +104,7 @@ class VisitorCreate(APIView):
     """
     Quick-create a provisional first-time-visitor profile at the door.
     """
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
 
     def post(self, request):
         serializer = VisitorCreateSerializer(data=request.data)
@@ -128,7 +128,7 @@ class UserDetail(APIView):
             raise Http404
 
     def _can_view(self, requester, target):
-        if requester == target or requester.role == User.Role.PASTOR or requester.is_superuser:
+        if requester == target or requester.role == User.Role.ADMIN or requester.is_superuser:
             return True
         return get_manageable_people_queryset(requester).filter(pk=target.pk).exists()
 
@@ -149,7 +149,7 @@ class UserDetail(APIView):
         """
         Update User Details. Which fields may be changed depends on who is
         asking: self-edit is limited to safe fields, Leaders may update
-        managed youth's ministry/guardian fields, and only Pastors may
+        managed youth's ministry/guardian fields, and only Admins may
         change role/status.
         """
         user = self.get_object(pk)
@@ -157,8 +157,8 @@ class UserDetail(APIView):
 
         if requester == user:
             serializer_class = UserSelfUpdateSerializer
-        elif requester.role == User.Role.PASTOR or requester.is_superuser:
-            serializer_class = UserPastorUpdateSerializer
+        elif requester.role == User.Role.ADMIN or requester.is_superuser:
+            serializer_class = UserAdminUpdateSerializer
         elif requester.role == User.Role.LEADER and get_manageable_people_queryset(requester).filter(pk=user.pk).exists():
             serializer_class = UserStaffUpdateSerializer
         else:
@@ -187,7 +187,7 @@ class UserDetail(APIView):
         user = self.get_object(pk)
         requester = request.user
 
-        if not (requester == user or requester.role == User.Role.PASTOR or requester.is_superuser):
+        if not (requester == user or requester.role == User.Role.ADMIN or requester.is_superuser):
             return Response(
                 {'detail': "You don't have permission to delete this account."},
                 status=status.HTTP_403_FORBIDDEN

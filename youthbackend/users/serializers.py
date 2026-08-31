@@ -81,8 +81,8 @@ class UserSelfUpdateSerializer(serializers.ModelSerializer):
 
 class UserStaffUpdateSerializer(serializers.ModelSerializer):
     """Fields a Leader may change on a youth profile they are authorised to
-    manage. Role is deliberately excluded - only a Pastor can regrade
-    someone's role (see UserPastorUpdateSerializer)."""
+    manage. Role is deliberately excluded - only an Admin can regrade
+    someone's role (see UserAdminUpdateSerializer)."""
 
     class Meta:
         model = User
@@ -94,8 +94,8 @@ class UserStaffUpdateSerializer(serializers.ModelSerializer):
         ]
 
 
-class UserPastorUpdateSerializer(serializers.ModelSerializer):
-    """Adds role management, restricted to Pastors/admins."""
+class UserAdminUpdateSerializer(serializers.ModelSerializer):
+    """Adds role management, restricted to Admins or superusers."""
 
     class Meta:
         model = User

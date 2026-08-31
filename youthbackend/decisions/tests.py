@@ -18,8 +18,8 @@ User = get_user_model()
 class DecisionPermissionTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.pastor = User.objects.create_user(
-            username='pastor', email='pastor@example.com', password='pass12345', role=User.Role.PASTOR
+        self.admin = User.objects.create_user(
+            username='admin', email='admin@example.com', password='pass12345', role=User.Role.ADMIN
         )
         self.leader = User.objects.create_user(
             username='leader', email='leader@example.com', password='pass12345', role=User.Role.LEADER
@@ -86,10 +86,10 @@ class DecisionPermissionTests(TestCase):
 
         self.client.force_authenticate(self.other_leader)
         response = self.client.post(f'/api/decisions/{decision.id}/follow-up/', {
-            'assignee_id': self.pastor.id,
+            'assignee_id': self.admin.id,
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['assignee']['id'], self.pastor.id)
+        self.assertEqual(response.data['assignee']['id'], self.admin.id)
 
     def test_cannot_assign_follow_up_to_a_youth(self):
         decision = create_decision(
@@ -105,8 +105,8 @@ class DecisionPermissionTests(TestCase):
 class FollowUpStatusTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.pastor = User.objects.create_user(
-            username='pastor2', email='pastor2@example.com', password='pass12345', role=User.Role.PASTOR
+        self.admin = User.objects.create_user(
+            username='admin2', email='admin2@example.com', password='pass12345', role=User.Role.ADMIN
         )
         self.leader = User.objects.create_user(
             username='leader2', email='leader2@example.com', password='pass12345', role=User.Role.LEADER
@@ -118,9 +118,9 @@ class FollowUpStatusTests(TestCase):
             username='youth2', email='youth2@example.com', password='pass12345'
         )
         self.decision = create_decision(
-            person=self.youth, recorded_by=self.pastor, decision_type=Decision.DecisionType.RECOMMITMENT,
+            person=self.youth, recorded_by=self.admin, decision_type=Decision.DecisionType.RECOMMITMENT,
         )
-        self.follow_up = assign_follow_up(self.decision, assignee=self.leader, actor=self.pastor)
+        self.follow_up = assign_follow_up(self.decision, assignee=self.leader, actor=self.admin)
 
     def test_assignee_can_update_own_status(self):
         self.client.force_authenticate(self.leader)
@@ -148,14 +148,14 @@ class FollowUpStatusTests(TestCase):
             update_follow_up_status(self.follow_up, self.other_leader, 'COMPLETED')
         self.assertEqual(ctx.exception.code, 'NOT_YOUR_FOLLOWUP')
 
-    def test_pastor_can_update_any_follow_up(self):
-        self.client.force_authenticate(self.pastor)
+    def test_admin_can_update_any_follow_up(self):
+        self.client.force_authenticate(self.admin)
         response = self.client.post(f'/api/decisions/follow-ups/{self.follow_up.id}/status/', {
             'status': 'IN_PROGRESS',
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_leader_sees_only_own_follow_ups_pastor_sees_all(self):
+    def test_leader_sees_only_own_follow_ups_admin_sees_all(self):
         self.client.force_authenticate(self.leader)
         response = self.client.get('/api/decisions/follow-ups/')
         self.assertEqual(len(response.data['results']), 1)
@@ -164,7 +164,7 @@ class FollowUpStatusTests(TestCase):
         response = self.client.get('/api/decisions/follow-ups/')
         self.assertEqual(len(response.data['results']), 0)
 
-        self.client.force_authenticate(self.pastor)
+        self.client.force_authenticate(self.admin)
         response = self.client.get('/api/decisions/follow-ups/')
         self.assertEqual(len(response.data['results']), 1)
 

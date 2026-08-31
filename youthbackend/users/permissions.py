@@ -6,12 +6,12 @@ User = get_user_model()
 def get_manageable_people_queryset(request_user):
     """Scope which people a given account may view/manage.
 
-    Pastors (and superusers) may manage everyone. Leaders are scoped to
+    Admins (and superusers) may manage everyone. Leaders are scoped to
     people who share an active membership in a group the leader leads.
     Everyone else may only see themselves. Never fetch everyone and filter
     client-side - the scoping has to happen in the query.
     """
-    if request_user.role == User.Role.PASTOR or request_user.is_superuser:
+    if request_user.role == User.Role.ADMIN or request_user.is_superuser:
         return User.objects.all()
 
     if request_user.role == User.Role.LEADER:

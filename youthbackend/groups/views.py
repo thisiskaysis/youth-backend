@@ -4,7 +4,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from core.audit import log_audit
-from core.permissions import IsLeaderOrPastor
+from core.permissions import IsLeaderOrAdmin
 from .models import Group, GroupMembership
 from .permissions import CanManageGroup, user_leads_group
 from .serializers import GroupDetailSerializer, GroupMembershipSerializer, GroupSerializer
@@ -39,7 +39,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 class GroupMembershipViewSet(viewsets.ModelViewSet):
     serializer_class = GroupMembershipSerializer
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
 
     def get_queryset(self):
         qs = GroupMembership.objects.select_related('group', 'person')

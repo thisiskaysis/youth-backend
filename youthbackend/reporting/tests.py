@@ -37,8 +37,8 @@ class ReportingPermissionTests(TestCase):
 class DashboardAggregateTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.pastor = User.objects.create_user(
-            username='pastor', email='pastor@example.com', password='pass12345', role=User.Role.PASTOR
+        self.admin = User.objects.create_user(
+            username='admin', email='admin@example.com', password='pass12345', role=User.Role.ADMIN
         )
         self.leader = User.objects.create_user(
             username='leader', email='leader@example.com', password='pass12345', role=User.Role.LEADER
@@ -55,7 +55,7 @@ class DashboardAggregateTests(TestCase):
         self.unassigned_youth = User.objects.create_user(
             username='unassigned', email='unassigned@example.com', password='pass12345'
         )
-        self.client.force_authenticate(self.pastor)
+        self.client.force_authenticate(self.admin)
 
         self.event = Event.objects.create(name='Friday Youth', starts_at=timezone.now())
         self.session = AttendanceSession.objects.create(event=self.event, opened_by=self.leader)
@@ -143,13 +143,13 @@ class DashboardAggregateTests(TestCase):
 class RosterSummaryTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.pastor = User.objects.create_user(
-            username='pastor2', email='pastor2@example.com', password='pass12345', role=User.Role.PASTOR
+        self.admin = User.objects.create_user(
+            username='admin2', email='admin2@example.com', password='pass12345', role=User.Role.ADMIN
         )
         self.volunteer = User.objects.create_user(
             username='vol1', email='vol1@example.com', password='pass12345'
         )
-        self.client.force_authenticate(self.pastor)
+        self.client.force_authenticate(self.admin)
         self.event = Event.objects.create(name='Friday Youth', starts_at=timezone.now() + timedelta(days=2))
 
     def test_roster_summary_requires_event_param(self):
@@ -168,8 +168,8 @@ class RosterSummaryTests(TestCase):
         mc1 = VolunteerPosition.objects.create(group=worship, name='MC1')
         VolunteerPosition.objects.create(group=worship, name='MC2')  # left unfilled
 
-        roster = get_or_create_roster(self.event, self.pastor)
-        assignment = assign_draft(roster=roster, position=mc1, person=self.volunteer, actor=self.pastor)
+        roster = get_or_create_roster(self.event, self.admin)
+        assignment = assign_draft(roster=roster, position=mc1, person=self.volunteer, actor=self.admin)
         publish_requests(roster, [assignment.id])
 
         response = self.client.get(f'/api/reporting/roster-summary/?event={self.event.id}')

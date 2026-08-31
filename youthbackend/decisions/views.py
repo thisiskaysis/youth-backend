@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
-from core.permissions import IsLeaderOrPastor
+from core.permissions import IsLeaderOrAdmin
 from .models import Decision, FollowUp
 from .serializers import (
     AssignFollowUpInputSerializer,
@@ -20,10 +20,10 @@ User = get_user_model()
 
 
 def _can_manage_follow_up(user, decision):
-    """Pastor manages any follow-up. A Leader may (re)assign only if they
+    """Admin manages any follow-up. A Leader may (re)assign only if they
     recorded the decision or are the current assignee handing it off -
     matches the docs' "scoped" framing for decisions.follow_up."""
-    if user.role == User.Role.PASTOR or user.is_superuser:
+    if user.role == User.Role.ADMIN or user.is_superuser:
         return True
     if decision.recorded_by_id == user.id:
         return True
@@ -32,11 +32,11 @@ def _can_manage_follow_up(user, decision):
 
 
 class DecisionViewSet(viewsets.ModelViewSet):
-    """Highly sensitive pastoral data - Leader/Pastor only, never surfaced
+    """Highly sensitive pastoral data - Leader/Admin only, never surfaced
     to the youth it's about. Decisions themselves are append-only from the
     API's point of view; only the follow-up moves after creation."""
 
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
     http_method_names = ['get', 'post', 'head', 'options']
 
     def get_serializer_class(self):
@@ -47,7 +47,7 @@ class DecisionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         qs = Decision.objects.select_related('person', 'recorded_by', 'event', 'follow_up__assignee')
-        if user.role == User.Role.PASTOR or user.is_superuser:
+        if user.role == User.Role.ADMIN or user.is_superuser:
             return qs
         return qs.filter(models.Q(recorded_by=user) | models.Q(follow_up__assignee=user)).distinct()
 
@@ -70,16 +70,16 @@ class DecisionViewSet(viewsets.ModelViewSet):
 
 
 class FollowUpViewSet(viewsets.ReadOnlyModelViewSet):
-    """Every assignee sees their own outstanding follow-ups; Pastors see
+    """Every assignee sees their own outstanding follow-ups; Admins see
     everyone's, for the leadership dashboard."""
 
     serializer_class = FollowUpSerializer
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
 
     def get_queryset(self):
         user = self.request.user
         qs = FollowUp.objects.select_related('decision__person', 'assignee')
-        if user.role == User.Role.PASTOR or user.is_superuser:
+        if user.role == User.Role.ADMIN or user.is_superuser:
             return qs
         return qs.filter(assignee=user)
 

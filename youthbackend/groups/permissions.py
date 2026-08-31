@@ -4,7 +4,7 @@ from .models import GroupMembership
 
 
 def user_leads_group(user, group):
-    if user.role == user.Role.PASTOR or user.is_superuser:
+    if user.role == user.Role.ADMIN or user.is_superuser:
         return True
     return GroupMembership.objects.filter(
         group=group, person=user, membership_role=GroupMembership.MembershipRole.LEADER, is_active=True
@@ -12,7 +12,7 @@ def user_leads_group(user, group):
 
 
 class CanManageGroup(BasePermission):
-    """Anyone authenticated may read groups; only Pastors or that specific
+    """Anyone authenticated may read groups; only Admins or that specific
     group's Leader may create/change/delete it."""
 
     def has_permission(self, request, view):
@@ -21,7 +21,7 @@ class CanManageGroup(BasePermission):
             return False
         if request.method in SAFE_METHODS:
             return True
-        return user.is_leader_or_pastor or user.is_superuser
+        return user.is_leader_or_admin or user.is_superuser
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:

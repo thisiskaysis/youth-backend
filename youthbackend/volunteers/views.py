@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.permissions import IsLeaderOrPastor
+from core.permissions import IsLeaderOrAdmin
 from events.models import Event
 from groups.models import Group, GroupMembership
 from groups.permissions import user_leads_group
@@ -39,7 +39,7 @@ User = get_user_model()
 
 
 def _manageable_group_ids(user):
-    if user.role == User.Role.PASTOR or user.is_superuser:
+    if user.role == User.Role.ADMIN or user.is_superuser:
         return Group.objects.values_list('id', flat=True)
     return GroupMembership.objects.filter(
         person=user, membership_role=GroupMembership.MembershipRole.LEADER, is_active=True
@@ -50,7 +50,7 @@ class EventRosterView(APIView):
     """Get-or-create the (single, launch-model) roster container for an
     event - clients only ever deal in event ids, never roster ids."""
 
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
 
     def get(self, request, event_id):
         event = get_object_or_404(Event, pk=event_id)
@@ -64,7 +64,7 @@ class VolunteerPositionViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.request.method in ('GET', 'HEAD', 'OPTIONS'):
             return [IsAuthenticated()]
-        return [IsLeaderOrPastor()]
+        return [IsLeaderOrAdmin()]
 
     def get_queryset(self):
         qs = VolunteerPosition.objects.select_related('group')
@@ -110,7 +110,7 @@ class VolunteerAssignmentViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ('list', 'retrieve', 'respond_action'):
             return [IsAuthenticated()]
-        return [IsLeaderOrPastor()]
+        return [IsLeaderOrAdmin()]
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -126,7 +126,7 @@ class VolunteerAssignmentViewSet(viewsets.ModelViewSet):
             qs = qs.filter(roster__event_id=event_id)
 
         user = self.request.user
-        if user.role == User.Role.PASTOR or user.is_superuser:
+        if user.role == User.Role.ADMIN or user.is_superuser:
             return qs
         led_group_ids = GroupMembership.objects.filter(
             person=user, membership_role=GroupMembership.MembershipRole.LEADER, is_active=True

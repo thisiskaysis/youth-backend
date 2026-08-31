@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from core.permissions import IsLeaderOrPastor
+from core.permissions import IsLeaderOrAdmin
 from users.serializers import UserBasicSerializer
 from .models import AttendanceSession
 from .realtime import broadcast_session_update
@@ -18,11 +18,11 @@ User = get_user_model()
 class AttendanceSessionViewSet(viewsets.ModelViewSet):
     """Attendance is staff-only end to end - a hidden scanner UI is not a
     security boundary, so every action here also requires attendance.manage
-    (modelled here as the Leader/Pastor role)."""
+    (modelled here as the Leader/Admin role)."""
 
     queryset = AttendanceSession.objects.select_related('event').all()
     serializer_class = AttendanceSessionSerializer
-    permission_classes = [IsLeaderOrPastor]
+    permission_classes = [IsLeaderOrAdmin]
 
     def get_queryset(self):
         qs = super().get_queryset()
