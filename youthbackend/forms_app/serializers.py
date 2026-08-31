@@ -22,12 +22,22 @@ class FormSubmissionSerializer(serializers.ModelSerializer):
 
 class FormAssignmentSerializer(serializers.ModelSerializer):
     form_title = serializers.CharField(source='form.title', read_only=True)
+    # The assignee has no access to the leader/admin-only definitions
+    # endpoint, so the schema needed to render the form is exposed here.
+    form_description = serializers.CharField(source='form.description', read_only=True)
+    form_schema = serializers.JSONField(source='form.schema', read_only=True)
     submission = FormSubmissionSerializer(read_only=True)
 
     class Meta:
         model = FormAssignment
-        fields = ['id', 'form', 'form_title', 'person', 'due_at', 'status', 'submission', 'created_at']
-        read_only_fields = ['id', 'form', 'form_title', 'person', 'status', 'submission', 'created_at']
+        fields = [
+            'id', 'form', 'form_title', 'form_description', 'form_schema',
+            'person', 'due_at', 'status', 'submission', 'created_at',
+        ]
+        read_only_fields = [
+            'id', 'form', 'form_title', 'form_description', 'form_schema',
+            'person', 'status', 'submission', 'created_at',
+        ]
 
 
 class AssignFormInputSerializer(serializers.Serializer):
