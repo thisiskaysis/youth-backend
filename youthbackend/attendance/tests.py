@@ -1,10 +1,17 @@
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from events.models import Event
+from notifications.models import Notification
+
+from .models import AttendanceSession
+from .services import sign_in
 
 User = get_user_model()
 
@@ -68,3 +75,45 @@ class AttendanceFlowTests(TestCase):
         final_close = self.client.post(f'/api/attendance/sessions/{session_id}/close/', {}, format='json')
         self.assertEqual(final_close.status_code, status.HTTP_200_OK)
         self.assertEqual(final_close.data['status'], 'CLOSED')
+
+
+class AttendanceReminderCommandTests(TestCase):
+    """`send_attendance_reminders` - leader reminder for open sessions
+    still holding people on site after the event's scheduled end."""
+
+    def setUp(self):
+        self.leader = User.objects.create_user(
+            username='leader2', email='leader2@example.com', password='pass12345', role=User.Role.LEADER
+        )
+        self.youth = User.objects.create_user(
+            username='youth2', email='youth2@example.com', password='pass12345'
+        )
+        self.event = Event.objects.create(
+            name='Friday Youth',
+            starts_at=timezone.now() - timedelta(hours=3),
+            ends_at=timezone.now() - timedelta(minutes=20),
+        )
+        self.session = AttendanceSession.objects.create(event=self.event, opened_by=self.leader)
+        sign_in(self.session, self.youth, self.leader, 'MANUAL')
+
+    def test_reminder_sent_once_session_past_threshold_with_people_on_site(self):
+        call_command('send_attendance_reminders')
+        self.assertTrue(
+            Notification.objects.filter(
+                person=self.leader, notification_type='ATTENDANCE_RECONCILIATION_REMINDER'
+            ).exists()
+        )
+
+    def test_reminder_is_not_duplicated_on_second_run(self):
+        call_command('send_attendance_reminders')
+        first_count = Notification.objects.filter(notification_type='ATTENDANCE_RECONCILIATION_REMINDER').count()
+        call_command('send_attendance_reminders')
+        second_count = Notification.objects.filter(notification_type='ATTENDANCE_RECONCILIATION_REMINDER').count()
+        self.assertEqual(first_count, second_count)
+
+    def test_no_reminder_once_everyone_is_signed_out(self):
+        from .services import sign_out
+        sign_out(self.session, self.youth, self.leader, 'MANUAL')
+        call_command('send_attendance_reminders')
+        self.assertFalse(Notification.objects.exists())
+

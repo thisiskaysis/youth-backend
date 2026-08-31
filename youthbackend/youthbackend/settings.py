@@ -66,6 +66,16 @@ INSTALLED_APPS = [
     'groups.apps.GroupsConfig',
     'events.apps.EventsConfig',
     'attendance.apps.AttendanceConfig',
+    'notifications.apps.NotificationsConfig',
+    'volunteers.apps.VolunteersConfig',
+    'inbox.apps.InboxConfig',
+    'prayer.apps.PrayerConfig',
+    'rides.apps.RidesConfig',
+    'forms_app.apps.FormsAppConfig',
+    'decisions.apps.DecisionsConfig',
+    'reporting.apps.ReportingConfig',
+    'content.apps.ContentConfig',
+    'navigation.apps.NavigationConfig',
 ]
 
 AUTH_USER_MODEL = 'users.User'
@@ -184,4 +194,10 @@ STATIC_URL = 'static/'
 
 EMAIL_BACKEND = os.environ.get(
     'DJANGO_EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend'
+)
+DEFAULT_FROM_EMAIL = os.environ.get('DJANGO_DEFAULT_FROM_EMAIL', 'no-reply@example.com')
+
+# Swap for a real Expo/FCM/APNs adapter once push provider credentials exist.
+NOTIFICATIONS_PUSH_BACKEND = os.environ.get(
+    'NOTIFICATIONS_PUSH_BACKEND', 'notifications.backends.ConsolePushBackend'
 )

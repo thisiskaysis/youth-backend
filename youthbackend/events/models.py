@@ -60,3 +60,25 @@ class Event(TimeStampedModel):
         if self.audience_school_years and user.school_year in self.audience_school_years:
             return True
         return self.audience_groups.filter(memberships__person=user, memberships__is_active=True).exists()
+
+    def resolve_audience_queryset(self):
+        """The reverse of is_visible_to: every active person this event's
+        audience settings target, for notification fan-out."""
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+        if self.audience_everyone:
+            return User.objects.filter(status=User.Status.ACTIVE)
+
+        # Start from "nobody" and OR in only the targeting mechanisms that
+        # are actually configured - failing closed if neither is set,
+        # rather than accidentally matching everyone.
+        query = models.Q(pk__in=[])
+        if self.audience_school_years:
+            query |= models.Q(school_year__in=self.audience_school_years)
+        if self.audience_groups.exists():
+            query |= models.Q(
+                group_memberships__group__in=self.audience_groups.all(), group_memberships__is_active=True
+            )
+        return User.objects.filter(query, status=User.Status.ACTIVE).distinct()
+
