@@ -20,3 +20,12 @@ class InboxMessageSerializer(serializers.ModelSerializer):
 class SendMessageInputSerializer(serializers.Serializer):
     recipient_id = serializers.IntegerField()
     body = serializers.CharField(allow_blank=False)
+
+
+class ConversationSerializer(serializers.Serializer):
+    """One row of the Inbox's conversation list (a DM thread with one
+    other person, newest message first)."""
+
+    participant = UserBasicSerializer()
+    last_message = InboxMessageSerializer()
+    unread_count = serializers.IntegerField()

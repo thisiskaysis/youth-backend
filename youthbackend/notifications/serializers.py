@@ -31,6 +31,6 @@ class NotificationSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'category', 'notification_type', 'channel', 'title', 'body',
             'deep_link_type', 'deep_link_id', 'data', 'status',
-            'scheduled_at', 'sent_at', 'read_at',
+            'scheduled_at', 'sent_at', 'read_at', 'created_at',
         ]
         read_only_fields = fields
